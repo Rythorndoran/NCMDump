@@ -1,0 +1,27 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NCMDump", "NCMDump\NCMDump.csproj", "{31B38B53-5EC3-4E92-B127-3B808CA756B7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{31B38B53-5EC3-4E92-B127-3B808CA756B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31B38B53-5EC3-4E92-B127-3B808CA756B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31B38B53-5EC3-4E92-B127-3B808CA756B7}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{31B38B53-5EC3-4E92-B127-3B808CA756B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31B38B53-5EC3-4E92-B127-3B808CA756B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31B38B53-5EC3-4E92-B127-3B808CA756B7}.Release|Any CPU.Deploy.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {38964D09-DB26-4461-96FD-F61510E570A3}
+	EndGlobalSection
+EndGlobal
