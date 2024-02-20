@@ -1,10 +1,12 @@
 ﻿using Android.Content;
 using Android.Graphics;
 using Android.OS;
+using Android.Text;
 using Android.Util;
 using Android.Views;
 using Android.Widget;
 using Java.Interop;
+using Java.Lang;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -54,6 +56,7 @@ namespace NCMDump
             // 添加大字体TextView
             bigTextView = new TextView(context);
             bigTextView.SetTextSize(ComplexUnitType.Sp, 20);
+            bigTextView.SetSingleLine();
             textLayout.AddView(bigTextView);
 
             // 添加小字体TextView
@@ -87,7 +90,7 @@ namespace NCMDump
         {
             base.OnMeasure(widthMeasureSpec, heightMeasureSpec);
             // 设置控件的最小尺寸
-            SetMeasuredDimension(MeasuredWidth, Math.Max(100, MeasuredHeight)); // 控件高度最小为100
+            SetMeasuredDimension(MeasuredWidth, System.Math.Max(100, MeasuredHeight)); // 控件高度最小为100
         }
 
         

@@ -8,14 +8,28 @@
     <ApplicationId>darkcode.app.ncmdump</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Platforms>AnyCPU;ARM64</Platforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AndroidPackageFormat>apk</AndroidPackageFormat>
     <RunAOTCompilation>False</RunAOTCompilation>
     <TrimMode>copyused</TrimMode>
+    <IsTrimmable>False</IsTrimmable>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <RunAOTCompilation>False</RunAOTCompilation>
+    <TrimMode>copyused</TrimMode>
+    <IsTrimmable>False</IsTrimmable>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <TrimMode>copyused</TrimMode>
+    <IsTrimmable>False</IsTrimmable>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM64'">
+    <TrimMode>copyused</TrimMode>
+    <IsTrimmable>False</IsTrimmable>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
