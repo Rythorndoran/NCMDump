@@ -196,7 +196,7 @@ namespace NCMDump
             }
         }
 
-        private void DumpFiles()
+        private async void DumpFiles()
         {
             List<string> list = new List<string>();
             foreach (var item in fileDictionary)
@@ -241,6 +241,7 @@ namespace NCMDump
                 // 在UI线程上关闭进度条对话框
                 RunOnUiThread(() => { progressDialog.Dismiss(); ShowToast("成功解密" + decryptedcount + "个文件"); });
             });
+            await task;
         }
 
         private string GetRealPathFromTreeUri(Android.Net.Uri treeUri)

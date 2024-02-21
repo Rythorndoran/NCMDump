@@ -363,7 +363,6 @@ namespace NCMDump
                     outfile.Flush();
                 }
 
-
                 var tagfile = TagLib.File.Create(outfile_name);
                 if (imagebytes is not null)
                 {
