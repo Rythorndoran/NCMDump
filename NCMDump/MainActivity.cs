@@ -31,7 +31,7 @@ namespace NCMDump
 
         private Dictionary<FileViewControl, string> fileDictionary = new Dictionary<FileViewControl, string>();
 
-        protected override async void OnCreate(Bundle? savedInstanceState)
+        protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
 
@@ -259,7 +259,7 @@ namespace NCMDump
             return null;
         }
 
-        private async void GetPermission()
+        private void GetPermission()
         {
             if (base.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
             {
@@ -268,10 +268,13 @@ namespace NCMDump
                     Manifest.Permission.ReadExternalStorage }, 0);
             }
 
-            if (Android.OS.Environment.IsExternalStorageManager != true)
+            if(Android.OS.Build.VERSION.SdkInt > BuildVersionCodes.Q)
             {
-                var intent = new Intent(Settings.ActionManageAllFilesAccessPermission);
-                StartActivityForResult(intent, 2);
+                if (Android.OS.Environment.IsExternalStorageManager != true)
+                {
+                    var intent = new Intent(Settings.ActionManageAllFilesAccessPermission);
+                    StartActivityForResult(intent, 2);
+                }
             }
         }
     }
