@@ -21,15 +21,14 @@ namespace NCMDump
     [Activity(Label = "@string/app_name", MainLauncher = true)]
     public class MainActivity : Activity
     {
-        private const int MENU_ITEM_ABOUT = IMenu.First;
+        private string CurrentFolder = "";
+        private string SaveFolder = "";
 
-        private string current_folder = "";
-        private string save_folder = "";
         private LinearLayout fileListLinearLayout;
         private ScrollView scrollView;
         private LinearLayout scrollContentLayout;
 
-        private Dictionary<FileViewControl, string> fileDictionary = new Dictionary<FileViewControl, string>();
+        private Dictionary<NCMFileViewControl, string> fileDictionary = new Dictionary<NCMFileViewControl, string>();
 
         protected override void OnCreate(Bundle? savedInstanceState)
         {
@@ -40,14 +39,8 @@ namespace NCMDump
 
             GetPermission();
 
-
-            ShowToast("请选择路径");
-
-            Intent intent = new Intent(Intent.ActionOpenDocumentTree);
-            StartActivityForResult(intent, 0);
-
             fileListLinearLayout = FindViewById<LinearLayout>(Resource.Id.FileListLinearLayout);
-           
+
             // Create ScrollView and add it to the LinearLayout
             scrollView = new ScrollView(this);
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MatchParent, LinearLayout.LayoutParams.MatchParent);
@@ -59,26 +52,16 @@ namespace NCMDump
             scrollContentLayout.LayoutParameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MatchParent, LinearLayout.LayoutParams.WrapContent);
             scrollContentLayout.Orientation = Android.Widget.Orientation.Vertical;
             scrollView.AddView(scrollContentLayout);
-        }
 
-        [Export("OnSelectPathClick")]
-        public void OnSelectPathClick(View view)
-        {
+
+            ShowToast("请选择路径");
             Intent intent = new Intent(Intent.ActionOpenDocumentTree);
             StartActivityForResult(intent, 0);
         }
 
-        [Export("OnStartDumpClick")]
-        public void OnStartDumpClick(View view)
-        {
-            ShowToast("请选择输出路径");
-            Intent intent = new Intent(Intent.ActionOpenDocumentTree);
-            StartActivityForResult(intent, 1);
-        }
-
         public override bool OnCreateOptionsMenu(IMenu menu)
         {
-            menu.Add(0, MENU_ITEM_ABOUT, 0, "关于");
+            MenuInflater.Inflate(Resource.Menu.Menu, menu);
             return true;
         }
 
@@ -86,9 +69,21 @@ namespace NCMDump
         {
             switch (item.ItemId)
             {
-                case MENU_ITEM_ABOUT:
+                case Resource.Id.AboutDialogActionItem:
                     ShowAboutDialog();
                     return true;
+
+                case Resource.Id.StartDumpActionItem:
+                    ShowToast("请选择输出路径");
+                    var intent = new Intent(Intent.ActionOpenDocumentTree);
+                    StartActivityForResult(intent, 1);
+                    return true;
+
+                case Resource.Id.SelectDumpPathActionItem:
+                    intent = new Intent(Intent.ActionOpenDocumentTree);
+                    StartActivityForResult(intent, 0);
+                    return true;
+
                 default:
                     return base.OnOptionsItemSelected(item);
             }
@@ -108,9 +103,9 @@ namespace NCMDump
                 }
                 else if (requestCode == 1)
                 {
-                    save_folder = GetRealPathFromTreeUri(data.Data);
-                    Console.WriteLine(save_folder);
-                    ShowToast("输出路径：" + save_folder);
+                    SaveFolder = GetRealPathFromTreeUri(data.Data);
+                    Console.WriteLine(SaveFolder);
+                    ShowToast("输出路径：" + SaveFolder);
                     DumpFiles();
                 }
                 if (requestCode == 2)
@@ -146,37 +141,43 @@ namespace NCMDump
         {
             if (newfolder != null)
             {
-                current_folder = newfolder;
+                CurrentFolder = newfolder;
             }
             UpdateFilesFromFolder();
         }
 
-        private void AddMusicItem(string filepath)
+        private void AddMusicItem2(string filepath)
         {
+            //NCMFileViewControl
+
+            var fileInfo = new FileInfo(filepath);
             var ncm_metadata = NeteaseCrypto.GetMetaData(filepath);
-            var FileViewControl = new FileViewControl(this);
+            var ViewControl = new NCMFileViewControl(this);
             var Image = NeteaseCrypto.GetImageBytes(filepath);
-            if(Image is not null)
+            if (Image is not null)
             {
-                FileViewControl.SetImage(Image);
+                ViewControl.SetImage(Image);
             }
             else
             {
-                FileViewControl.SetImage(Resource.Mipmap.ic_launcher);
+                ViewControl.SetImage(Resource.Mipmap.ic_launcher);
             }
 
-            FileViewControl.SetBigText(System.IO.Path.GetFileNameWithoutExtension(filepath));
+            string MusicName = NeteaseCrypto.GetMusicNameFromMetaData(ncm_metadata);
+            string ArtistNames = NeteaseCrypto.GetArtistNamesFromMetaData(ncm_metadata);
+            string FileExtensionName = NeteaseCrypto.GetFormatFromMetaData(ncm_metadata);
 
-            FileViewControl.SetSmallText("Artist：" + NeteaseCrypto.GetArtistNamesFromMetaData(ncm_metadata)
-                + "\n" + "Bitrate：" + NeteaseCrypto.GetBitrateFromMetaData(ncm_metadata)
-                + " Format：" + NeteaseCrypto.GetFormatFromMetaData(ncm_metadata));
+            long fileSizeInBytes = fileInfo.Length;
+            double fileSizeInKB = fileSizeInBytes / 1024.0; // 字节转换为千字节（KB）
+            double fileSizeInMB = fileSizeInKB / 1024.0; // 千字节转换为兆字节（MB）
+            string FileSize = $"{Math.Round(fileSizeInMB, 2)} MB";
 
-            FileViewControl.
-            Checked = true;
-
-            scrollContentLayout.AddView(FileViewControl);
-
-            fileDictionary.Add(FileViewControl, filepath);
+            ViewControl.SetMusicNameText(MusicName);
+            ViewControl.SetMusicInfoText($"Artist：{ArtistNames}");
+            ViewControl.SetFileInfoText($"Size: {FileSize} Format: {FileExtensionName}");
+            ViewControl.SetCheckBoxChecked(true);
+            scrollContentLayout.AddView(ViewControl);
+            fileDictionary.Add(ViewControl, filepath);
         }
 
         private void UpdateFilesFromFolder()
@@ -184,15 +185,20 @@ namespace NCMDump
             scrollContentLayout.RemoveAllViews();
             fileDictionary.Clear();
 
-            Console.WriteLine(current_folder);
-            var files = Directory.EnumerateFiles(current_folder);
-
+            Console.WriteLine(CurrentFolder);
+            var files = Directory.EnumerateFiles(CurrentFolder);
+            int count = 0;
             foreach (var item in files)
             {
                 FileInfo fileInfo = new FileInfo(item);
                 if (fileInfo.Extension != ".ncm")
                     continue;
-                AddMusicItem(item);
+                AddMusicItem2(item);
+                count ++;
+            }
+            if(count == 0)
+            {
+                ShowToast("当前未找到NCM文件，请检查路径或者文件权限！");
             }
         }
 
@@ -201,7 +207,7 @@ namespace NCMDump
             List<string> list = new List<string>();
             foreach (var item in fileDictionary)
             {
-                if (item.Key.Checked)
+                if (item.Key.GetCheckBoxChecked())
                 {
                     list.Add(item.Value);
                 }
@@ -233,13 +239,20 @@ namespace NCMDump
                         progressDialog.SetMessage(item);
                     });
 
-                    if (NeteaseCrypto.WriteMusicFile(item, save_folder))
+                    if (NeteaseCrypto.WriteMusicFile(item, SaveFolder))
                     {
                         decryptedcount++;
                     }
                 }
-                // 在UI线程上关闭进度条对话框
-                RunOnUiThread(() => { progressDialog.Dismiss(); ShowToast("成功解密" + decryptedcount + "个文件"); });
+                if(decryptedcount == 0)
+                {
+                    RunOnUiThread(() => { progressDialog.Dismiss(); ShowToast("没有任何文件被解密，请检查路径或者文件权限！"); });
+                }
+                else
+                {
+                    // 在UI线程上关闭进度条对话框
+                    RunOnUiThread(() => { progressDialog.Dismiss(); ShowToast("成功解密" + decryptedcount + "个文件"); });
+                }
             });
             await task;
         }
@@ -269,7 +282,7 @@ namespace NCMDump
                     Manifest.Permission.ReadExternalStorage }, 0);
             }
 
-            if(Android.OS.Build.VERSION.SdkInt > BuildVersionCodes.Q)
+            if (Android.OS.Build.VERSION.SdkInt > BuildVersionCodes.Q)
             {
                 if (Android.OS.Environment.IsExternalStorageManager != true)
                 {

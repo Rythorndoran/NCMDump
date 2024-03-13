@@ -16,16 +16,4 @@
         android:layout_weight="1"
         android:id="@+id/FileListLinearLayout">
     </LinearLayout>
-    <Button
-        android:text="选择目录"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/SelectPathButton"
-        android:onClick="OnSelectPathClick"/>
-    <Button
-        android:text="开始处理"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/StartDumpButton"
-        android:onClick="OnStartDumpClick"/>
 </LinearLayout>
