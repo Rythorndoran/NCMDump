@@ -1,25 +1,14 @@
-﻿using Android.Content;
-using Android.Graphics;
-using Android.Net;
+﻿using Android;
+using Android.Content;
+using Android.Content.PM;
 using Android.OS;
 using Android.Provider;
 using Android.Views;
-using Android.Widget;
-using Android.Content.PM;
-using Java.Interop;
-using static Android.Icu.Text.CaseMap;
-using Android;
-using Android.Text.Method;
-using Android.Text.Style;
-using Android.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Threading.Tasks;
 
 namespace NCMDump
 {
     [Activity(Label = "@string/app_name", MainLauncher = true)]
-    public class MainActivity : Activity
+    public partial class MainActivity : Activity
     {
         private string CurrentFolder = "";
         private string SaveFolder = "";
@@ -33,30 +22,7 @@ namespace NCMDump
         protected override void OnCreate(Bundle? savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
-
-            // Set our view from the "main" layout resource
-            SetContentView(Resource.Layout.activity_main);
-
-            GetPermission();
-
-            fileListLinearLayout = FindViewById<LinearLayout>(Resource.Id.FileListLinearLayout);
-
-            // Create ScrollView and add it to the LinearLayout
-            scrollView = new ScrollView(this);
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MatchParent, LinearLayout.LayoutParams.MatchParent);
-            scrollView.LayoutParameters = layoutParams;
-            fileListLinearLayout.AddView(scrollView);
-
-            // Create a new LinearLayout to put inside the ScrollView
-            scrollContentLayout = new LinearLayout(this);
-            scrollContentLayout.LayoutParameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MatchParent, LinearLayout.LayoutParams.WrapContent);
-            scrollContentLayout.Orientation = Android.Widget.Orientation.Vertical;
-            scrollView.AddView(scrollContentLayout);
-
-
-            ShowToast("请选择路径");
-            Intent intent = new Intent(Intent.ActionOpenDocumentTree);
-            StartActivityForResult(intent, 0);
+            Initialize(this);
         }
 
         public override bool OnCreateOptionsMenu(IMenu menu)
@@ -74,14 +40,12 @@ namespace NCMDump
                     return true;
 
                 case Resource.Id.StartDumpActionItem:
-                    ShowToast("请选择输出路径");
-                    var intent = new Intent(Intent.ActionOpenDocumentTree);
-                    StartActivityForResult(intent, 1);
+                    ShowToast("选择保存目录");
+                    StartDumpFiles();
                     return true;
 
                 case Resource.Id.SelectDumpPathActionItem:
-                    intent = new Intent(Intent.ActionOpenDocumentTree);
-                    StartActivityForResult(intent, 0);
+                    UpdateCurrentFolder();
                     return true;
 
                 default:
@@ -92,26 +56,54 @@ namespace NCMDump
         protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
         {
             base.OnActivityResult(requestCode, resultCode, data);
-            if (resultCode == Result.Ok)
+            if (requestCode is FilePickerRequestCode)
             {
-                if (requestCode == 0)
+                FilePickerOnActivityResultAction?.Invoke(requestCode, resultCode, data);
+            }
+            if (requestCode is ManageAppAllFilesPermissionRequestCode)
+            {
+                ManageAppAllFilesPermissionOnActivityResultAction?.Invoke(requestCode, resultCode, data);
+            }
+        }
+
+        private async void Initialize(Context context)
+        {
+            // Set our view from the "main" layout resource
+            SetContentView(Resource.Layout.activity_main);
+
+            fileListLinearLayout = FindViewById<LinearLayout>(Resource.Id.FileListLinearLayout);
+
+            // Create ScrollView and add it to the LinearLayout
+            scrollView = new ScrollView(this);
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MatchParent, LinearLayout.LayoutParams.MatchParent);
+            scrollView.LayoutParameters = layoutParams;
+            fileListLinearLayout.AddView(scrollView);
+
+            // Create a new LinearLayout to put inside the ScrollView
+            scrollContentLayout = new LinearLayout(this);
+            scrollContentLayout.LayoutParameters = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MatchParent, LinearLayout.LayoutParams.WrapContent);
+            scrollContentLayout.Orientation = Android.Widget.Orientation.Vertical;
+            scrollView.AddView(scrollContentLayout);
+            if (CheckPermissionGranted() is false)
+            {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                AlertDialog alertDialog = builder.Create();
+                alertDialog.SetMessage("文件访问权限未授予，程序可能无法正常运行,请授予文件访问权限");
+                alertDialog.SetButton("确定", async (s, e) =>
                 {
-                    var selectedPath = GetRealPathFromTreeUri(data.Data);
-                    UpdateCurrentFolder(selectedPath);
-                    Console.WriteLine(selectedPath);
-                    ShowToast("选择路径：" + selectedPath);
-                }
-                else if (requestCode == 1)
-                {
-                    SaveFolder = GetRealPathFromTreeUri(data.Data);
-                    Console.WriteLine(SaveFolder);
-                    ShowToast("输出路径：" + SaveFolder);
-                    DumpFiles();
-                }
-                if (requestCode == 2)
-                {
-                    Console.WriteLine("权限已授权");
-                }
+                    alertDialog.Dismiss();
+                    bool status = await RequestPermission();
+                    if (status is false)
+                    {
+                        ShowToast("请授予文件权限！");
+                    }
+                });
+                alertDialog.Show();
+            }
+            else
+            {
+                UpdateCurrentFolder();
             }
         }
 
@@ -137,16 +129,36 @@ namespace NCMDump
             alertDialog.Show();
         }
 
-        private void UpdateCurrentFolder(string? newfolder)
+        private async void UpdateCurrentFolder()
         {
-            if (newfolder != null)
+            if (CheckPermissionGranted() is false)
             {
-                CurrentFolder = newfolder;
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                AlertDialog alertDialog = builder.Create();
+                alertDialog.SetMessage("文件访问权限未授予，程序可能无法正常运行,请授予文件访问权限");
+                alertDialog.SetButton("确定", async (s, e) =>
+                {
+                    alertDialog.Dismiss();
+                    bool status = await RequestPermission();
+                    if (status is false)
+                    {
+                        ShowToast("请授予文件权限！");
+                    }
+                });
+                alertDialog.Show();
+                return;
             }
-            UpdateFilesFromFolder();
+
+            CurrentFolder = await SelectPath();
+            Console.WriteLine("Path:" + CurrentFolder);
+            if(CurrentFolder is not "")
+            {
+                UpdateFilesFromFolder();
+            }
         }
 
-        private void AddMusicItem2(string filepath)
+        private void AddMusicItem(string filepath)
         {
             //NCMFileViewControl
 
@@ -193,17 +205,18 @@ namespace NCMDump
                 FileInfo fileInfo = new FileInfo(item);
                 if (fileInfo.Extension != ".ncm")
                     continue;
-                AddMusicItem2(item);
-                count ++;
+                AddMusicItem(item);
+                count++;
             }
-            if(count == 0)
+            if (count == 0)
             {
                 ShowToast("当前未找到NCM文件，请检查路径或者文件权限！");
             }
         }
 
-        private async void DumpFiles()
+        private async void StartDumpFiles()
         {
+            SaveFolder = await SelectPath();
             List<string> list = new List<string>();
             foreach (var item in fileDictionary)
             {
@@ -244,7 +257,7 @@ namespace NCMDump
                         decryptedcount++;
                     }
                 }
-                if(decryptedcount == 0)
+                if (decryptedcount == 0)
                 {
                     RunOnUiThread(() => { progressDialog.Dismiss(); ShowToast("没有任何文件被解密，请检查路径或者文件权限！"); });
                 }
@@ -255,41 +268,6 @@ namespace NCMDump
                 }
             });
             await task;
-        }
-
-        private string GetRealPathFromTreeUri(Android.Net.Uri treeUri)
-        {
-            // 获取Uri的路径部分
-            var docId = DocumentsContract.GetTreeDocumentId(treeUri);
-            // 分割得到的文档ID来获得路径段
-            var parts = docId.Split(':');
-
-            if (parts.Length >= 2 && "primary".Equals(parts[0], StringComparison.OrdinalIgnoreCase))
-            {
-                // 构造真实路径，这依赖于内部存储的根目录被挂载在 /storage/emulated/0/
-                return Android.OS.Environment.ExternalStorageDirectory.AbsolutePath + "/" + parts[1];
-            }
-
-            return null;
-        }
-
-        private void GetPermission()
-        {
-            if (base.CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
-            {
-                base.RequestPermissions(new string[] {
-                    Manifest.Permission.WriteExternalStorage,
-                    Manifest.Permission.ReadExternalStorage }, 0);
-            }
-
-            if (Android.OS.Build.VERSION.SdkInt > BuildVersionCodes.Q)
-            {
-                if (Android.OS.Environment.IsExternalStorageManager != true)
-                {
-                    var intent = new Intent(Settings.ActionManageAllFilesAccessPermission);
-                    StartActivityForResult(intent, 2);
-                }
-            }
         }
     }
 }
