@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="NCMDump.MainPage"
+             Loaded="ContentPage_Loaded">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Border Grid.Row="0"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 5,5,5,5"
+                Background="Transparent"
+                Padding="12,8"
+                Margin="0,1">
+            <VerticalStackLayout RadioButtonGroup.GroupName="FilePickerMode"
+                                 RadioButtonGroup.SelectedValue="{Binding PickerMode}"                        
+                                 >
+                <Label Text="选择输入路径" FontSize="28" FontAttributes="Bold"></Label>
+                <RadioButton Value="Single" Content ="单个文件">
+                </RadioButton>
+                <RadioButton Value="Multiple" Content ="多个文件">
+                </RadioButton>
+                <RadioButton Value="Folder" Content ="目录">
+                </RadioButton>
+            </VerticalStackLayout>
+        </Border>
+        
+        <Button Grid.Row="2"
+                Text="下一步"
+                Clicked="Button_Clicked">
+        </Button>
+    </Grid>
+</ContentPage>
