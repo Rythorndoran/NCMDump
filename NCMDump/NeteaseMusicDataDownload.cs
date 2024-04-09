@@ -63,21 +63,30 @@ namespace NCMDump
 
         public static async Task<NeteaseLyric> GetLyric(long music_id)
         {
-            string LyricAPI = $"http://music.163.com/api/song/lyric?id={music_id}&lv=1&kv=1&tv=-1";
-            using (HttpClient client = new HttpClient())
+            try
             {
-                HttpResponseMessage response = await client.GetAsync(LyricAPI);
+                string LyricAPI = $"https://music.163.com/api/song/lyric?id={music_id}&lv=1&kv=1&tv=-1";
+                using (HttpClient client = new HttpClient())
+                {
+                    HttpResponseMessage response = await client.GetAsync(LyricAPI);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    string responseBody = await response.Content.ReadAsStringAsync();
-                    return JsonConvert.DeserializeObject<NeteaseLyric>(responseBody);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        string responseBody = await response.Content.ReadAsStringAsync();
+                        return JsonConvert.DeserializeObject<NeteaseLyric>(responseBody);
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Failed to request the API. Status code: " + response.StatusCode);
+                        return null;
+                    }
                 }
-                else
-                {
-                    Debug.WriteLine("Failed to request the API. Status code: " + response.StatusCode);
-                    return null;
-                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Exception -> {ex.Message}");
+                Debug.WriteLine($"StackTrace:\n {ex.StackTrace}");
+                return null;
             }
         }
     }
