@@ -51,7 +51,6 @@ public partial class PerformingAction : ContentPage
             {
                 item.Status = "Processing";
 
-
                 if (item.CryptoMusic.WriteDecryptMusic(outdir))
                 {
                     item.Status = "OK";
@@ -64,7 +63,12 @@ public partial class PerformingAction : ContentPage
                 double progress = (double)processedItems / totalItems;
                 MainThread.BeginInvokeOnMainThread(() => ActionProgressBar.Progress = progress);
                 MainThread.BeginInvokeOnMainThread(() => MusicItemListView.ScrollTo(processedItems));
-                Thread.Sleep(1000);
+
+                //怕调用太快被服务器拉黑了
+                if(GlobalVars.Configs.DownloadCoverImage || GlobalVars.Configs.DownloadLyric)
+                {
+                    Thread.Sleep(1000);
+                }
             }
         });
         ActionProgressBar.IsVisible = false;

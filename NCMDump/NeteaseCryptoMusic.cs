@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace NCMDump
 {
@@ -18,12 +20,16 @@ namespace NCMDump
 
         private string path;
 
-        private NeteaseCryptoMusic(string _path, NeteaseCryptoMusicMetaData metaData, ImageSource coverimage, byte[] coverImageBitmap)
+        public bool IsEnabedImages { get; set; }
+
+
+        private NeteaseCryptoMusic(string _path, NeteaseCryptoMusicMetaData metaData, ImageSource coverimage, byte[] coverImageBitmap, bool isEnabedImages)
         {
             path = _path;
             MetaData = metaData;
             CoverImage = coverimage;
             CoverImageBitmap = coverImageBitmap;
+            IsEnabedImages = isEnabedImages;
         }
 
         public NeteaseCryptoMusicMetaData MetaData
@@ -78,7 +84,8 @@ namespace NCMDump
                 var decrypt_base64 = Convert.FromBase64String(System.Text.Encoding.UTF8.GetString(GetBytesByOffset(metadata_enc, 22)));
                 var decrypt_metadata = DecryptAex128Ecb(meta_key, decrypt_base64);
                 var metadata = System.Text.Encoding.UTF8.GetString(decrypt_metadata).Substring(6).Trim();
-                var metadata_object = JsonSerializer.Deserialize<NeteaseCryptoMusicMetaData>(metadata);
+                //var metadata_object = JsonSerializer.Deserialize<NeteaseCryptoMusicMetaData>(metadata);
+                var metadata_object = JsonConvert.DeserializeObject<NeteaseCryptoMusicMetaData>(metadata);
 
                 //skip crc32&gap2
                 fs.Seek(9, SeekOrigin.Current);
@@ -88,6 +95,7 @@ namespace NCMDump
                 //cover_data_size
                 var cover_data_size = ReadUInt32(fs);
                 byte[] coverimage_bitmap;
+                bool isEnabedImages = false;
                 if (cover_data_size != 0)
                 {
                     byte[] cover_data = new byte[cover_data_size];
@@ -95,13 +103,19 @@ namespace NCMDump
                     var coverimage = new MemoryStream(cover_data);
                     coverimage_bitmap = coverimage.ToArray();
                     coverimage_source = ImageSource.FromStream(() => { return coverimage; });
+                    isEnabedImages = true;
                 }
                 else
                 {
-                    coverimage_bitmap = File.ReadAllBytes("music.png");
-                    coverimage_source = ImageSource.FromFile("music.png");
+                    var stream = FileSystem.OpenAppPackageFileAsync("music.png").Result;
+                    MemoryStream memoryStream = new MemoryStream();
+                    stream.CopyTo(memoryStream);
+                    coverimage_bitmap = memoryStream.ToArray();
+                    coverimage_source = ImageSource.FromStream(() => { return memoryStream; });
+                    stream.Close();
+                    memoryStream.Close();
                 }
-                return new NeteaseCryptoMusic(path, metadata_object, coverimage_source, coverimage_bitmap);
+                return new NeteaseCryptoMusic(path, metadata_object, coverimage_source, coverimage_bitmap, isEnabedImages);
             }
         }
 
@@ -110,7 +124,7 @@ namespace NCMDump
             var NewFilePath = outdir + "/" + System.IO.Path.GetFileNameWithoutExtension(path) + "." + MetaData.Format;
             if (System.IO.Path.Exists(NewFilePath))
             {
-                Debug.WriteLine("File Exists -> {0}", NewFilePath);
+                Debug.WriteLine($"File Exists -> {NewFilePath}");
                 return true;
             }
             try
@@ -177,11 +191,35 @@ namespace NCMDump
                     }
 
                     var tagfile = TagLib.File.Create(NewFilePath);
-                    var tag_pic = new TagLib.Picture(new TagLib.ByteVector(CoverImageBitmap));
-                    tagfile.Tag.Pictures = new TagLib.Picture[] { tag_pic };
+                    if (IsEnabedImages)
+                    {
+                        var tag_pic = new TagLib.Picture(new TagLib.ByteVector(CoverImageBitmap));
+                        tagfile.Tag.Pictures = new TagLib.Picture[] { tag_pic };
+                    }
+                    else if (GlobalVars.Configs.DownloadCoverImage)
+                    {
+                        var image_bytes = NeteaseMusicDataDownload.GetCoverImage(MetaData.AlbumPic).Result;
+                        if (image_bytes != null)
+                        {
+                            var tag_pic = new TagLib.Picture(new TagLib.ByteVector(image_bytes));
+                            tagfile.Tag.Pictures = new TagLib.Picture[] { tag_pic };
+                        }
+                    }
+                    if (GlobalVars.Configs.DownloadLyric)
+                    {
+                        var music_lyric = NeteaseMusicDataDownload.GetLyric(MetaData.MusicId).Result;
+                        if (music_lyric != null)
+                        {
+                            if (music_lyric.code == 200)
+                            {
+                                tagfile.Tag.Lyrics = music_lyric.lrc.lyric;
+                            }
+                        }
+                    }
+
                     tagfile.Tag.Comment = MetaData.Album;
                     tagfile.Tag.Title = MetaData.MusicName;
-                    tagfile.Tag.Performers = MetaData.Artists.Select(x => x.ArtistName).ToArray();
+                    tagfile.Tag.Performers = MetaData.Artist.Select(x => x.ArtistName).ToArray();
                     tagfile.Tag.Album = MetaData.Album;
                     tagfile.Save();
                     return true;
@@ -189,7 +227,8 @@ namespace NCMDump
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("Exception -> {0}", ex.Message);
+                Debug.WriteLine($"Exception -> {ex.Message}");
+                Debug.WriteLine($"StackTrace:\n {ex.StackTrace}");
                 return false;
             }
         }
