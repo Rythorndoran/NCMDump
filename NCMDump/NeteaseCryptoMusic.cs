@@ -100,20 +100,22 @@ namespace NCMDump
                 {
                     byte[] cover_data = new byte[cover_data_size];
                     fs.Read(cover_data);
-                    var coverimage = new MemoryStream(cover_data);
-                    coverimage_bitmap = coverimage.ToArray();
-                    coverimage_source = ImageSource.FromStream(() => { return coverimage; });
+                    coverimage_bitmap = cover_data;
+                    coverimage_source = ImageSource.FromStream(() => { return new MemoryStream(cover_data); });
                     isEnabedImages = true;
                 }
                 else
                 {
-                    var stream = FileSystem.OpenAppPackageFileAsync("music.png").Result;
-                    MemoryStream memoryStream = new MemoryStream();
-                    stream.CopyTo(memoryStream);
-                    coverimage_bitmap = memoryStream.ToArray();
-                    coverimage_source = ImageSource.FromStream(() => { return memoryStream; });
-                    stream.Close();
-                    memoryStream.Close();
+                    using (var stream = FileSystem.OpenAppPackageFileAsync("music.png").Result)
+                    {
+                        
+                        using (MemoryStream memoryStream = new MemoryStream())
+                        {
+                            stream.CopyTo(memoryStream);
+                            coverimage_bitmap = memoryStream.ToArray();
+                            coverimage_source = ImageSource.FromStream(() => { return new MemoryStream(coverimage_bitmap); });
+                        }
+                    }
                 }
                 return new NeteaseCryptoMusic(path, metadata_object, coverimage_source, coverimage_bitmap, isEnabedImages);
             }
@@ -200,7 +202,7 @@ namespace NCMDump
                     else if (GlobalVars.Configs.DownloadCoverImage)
                     {
                         var image_bytes = NeteaseMusicDataDownload.GetCoverImage(MetaData.AlbumPic).Result;
-                        if (image_bytes != null)
+                        if (image_bytes != null && image_bytes.Length != 0)
                         {
                             var tag_pic = new TagLib.Picture(new TagLib.ByteVector(image_bytes));
                             tagfile.Tag.Pictures = new TagLib.Picture[] { tag_pic };
