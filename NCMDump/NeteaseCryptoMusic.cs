@@ -122,7 +122,8 @@ namespace NCMDump
         public bool WriteDecryptMusic(string outdir)
         {
             var NewFilePath = outdir + "/" + System.IO.Path.GetFileNameWithoutExtension(path) + "." + MetaData.Format;
-            if (System.IO.Path.Exists(NewFilePath))
+
+            if (System.IO.Path.Exists(NewFilePath) && GlobalVars.Configs.OverwriteFile == false)
             {
                 Debug.WriteLine($"File Exists -> {NewFilePath}");
                 return true;

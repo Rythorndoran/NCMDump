@@ -25,8 +25,6 @@ namespace NCMDump
 
     public class NeteaseLyric
     {
-        public UserData transUser { get; set; }
-        public UserData lyricUser { get; set; }
         public LyricData lrc { get; set; }
         public LyricData klyric { get; set; }
         public LyricData tlyric { get; set; }

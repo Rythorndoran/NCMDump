@@ -50,6 +50,12 @@
                     <Label Text="从网络获取歌词(暂不支持翻译歌词)" VerticalOptions="Center" VerticalTextAlignment="Center"></Label>
                 </HorizontalStackLayout>
                 
+                <HorizontalStackLayout>
+                    <CheckBox IsChecked="{Binding GlobalConfigs.OverwriteFile}" VerticalOptions="Center">
+                    </CheckBox>
+                    <Label Text="覆盖已有文件" VerticalOptions="Center" VerticalTextAlignment="Center"></Label>
+                </HorizontalStackLayout>
+
             </VerticalStackLayout>
         </Border>
         <Button Grid.Row="3"

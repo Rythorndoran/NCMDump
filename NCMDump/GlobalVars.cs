@@ -22,6 +22,12 @@ namespace NCMDump
             set;
         } = false;
 
+        public bool OverwriteFile 
+        { 
+            get;
+            set;
+        } = false;
+
         private GlobalVars() { }
 
     }
