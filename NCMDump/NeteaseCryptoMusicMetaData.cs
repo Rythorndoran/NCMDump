@@ -1,13 +1,40 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace NCMDump
 {
+    public class ArtistDataConverter : Newtonsoft.Json.JsonConverter<Artist>
+    {
+        public override Artist ReadJson(JsonReader reader, Type objectType, Artist existingValue, bool hasExistingValue, Newtonsoft.Json.JsonSerializer serializer)
+        {
+            if (reader.TokenType != JsonToken.StartArray)
+            {
+                throw new JsonSerializationException("Expected StartArray token");
+            }
+
+            // 读取数组元素
+            JArray array = JArray.Load(reader);
+            string name = array[0].ToString();
+            int value = array[1].Value<int>();
+
+            return new Artist { ArtistName = name, ArtistId = value };
+        }
+
+        public override void WriteJson(JsonWriter writer, Artist value, Newtonsoft.Json.JsonSerializer serializer)
+        {
+            // 序列化 MyData 对象为无键的 JSON 数组
+            writer.WriteStartArray();
+            writer.WriteValue(value.ArtistName);
+            writer.WriteValue(value.ArtistId);
+            writer.WriteEndArray();
+        }
+    }
+
     public class Artist
     {
         public string ArtistName { get; set; }
@@ -18,64 +45,49 @@ namespace NCMDump
 
     public class NeteaseCryptoMusicMetaData
     {
-        [JsonPropertyName("musicId")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "musicId")]
         public long MusicId { get; set; }
 
-        [JsonPropertyName("musicName")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "musicName")]
         public string MusicName { get; set; }
 
-        [JsonPropertyName("artist")]
-        public List<List<object>> artist { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName = "artist" , ItemConverterType = typeof(ArtistDataConverter))]
+        public List<Artist> Artist { get; set; }
 
-        [JsonPropertyName("albumId")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "albumId")]
         public long AlbumId { get; set; }
 
-        [JsonPropertyName("album")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "album")]
         public string Album { get; set; }
 
-        [JsonPropertyName("albumPicDocId")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "albumPicDocId")]
         public string AlbumPicDocId { get; set; }
 
-        [JsonPropertyName("albumPic")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "albumPic")]
         public string AlbumPic { get; set; }
 
-        [JsonPropertyName("bitrate")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "bitrate")]
         public int Bitrate { get; set; }
 
-        [JsonPropertyName("mp3DocId")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "mp3DocId")]
         public string Mp3DocId { get; set; }
 
-        [JsonPropertyName("duration")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "duration")]
         public int Duration { get; set; }
 
-        [JsonPropertyName("mvId")]
-        public long mvId { get; set; }
+        [Newtonsoft.Json.JsonProperty(PropertyName = "mvId")]
+        public long MvId { get; set; }
 
-        [JsonPropertyName("alias")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "alias")]
         public List<string> Alias { get; set; }
 
-        [JsonPropertyName("transNames")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "transNames")]
         public List<string> TransNames { get; set; }
 
-        [JsonPropertyName("format")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "format")]
         public string Format { get; set; }
 
-        [JsonPropertyName("flag")]
+        [Newtonsoft.Json.JsonProperty(PropertyName = "flag")]
         public int Flag { get; set; }
-
-        public List<Artist> Artists
-        {
-            get
-            {
-                List<Artist> artists = new List<Artist>();
-                foreach (var item in artist)
-                {
-
-                    artists.Add(new Artist { ArtistName = ((JsonElement)item[0]).GetString(), ArtistId = ((JsonElement)item[1]).GetInt32() });
-                }
-                return artists;
-            }
-        }
-
     }
 }
