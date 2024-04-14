@@ -39,18 +39,24 @@
                                         <RoundRectangleGeometry Rect="0,0,100,100" CornerRadius="5"></RoundRectangleGeometry>
                                     </Image.Clip>
                                 </Image>
-                                <VerticalStackLayout Grid.Column="1" Padding="10">
-                                    <Label  Text ="{Binding MusicName}"
-                                        FontSize="36"
-                                        FontAttributes="Bold"
-                                        VerticalOptions="Start" >
-                                    </Label>
-
-                                    <Label Text="{Binding FileInfo}"
+                            <Grid Grid.Column="1" Padding="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"></RowDefinition>
+                                    <RowDefinition Height="*"></RowDefinition>
+                                    <RowDefinition Height="Auto"></RowDefinition>
+                                </Grid.RowDefinitions>
+                                <Label Grid.Row="0" 
+                                        Text ="{Binding MusicName}"
+                                        FontSize="24"
+                                        MaxLines ="2"
+                                        FontAttributes="Bold">
+                                </Label>
+                                <Label Grid.Row="2"
+                                       Text="{Binding FileInfo}"
                                        FontSize="12"
                                        VerticalOptions="End">
-                                    </Label>
-                                </VerticalStackLayout>
+                                </Label>
+                            </Grid>
                             <Label Grid.Column="2" Text="{Binding Status}" FontSize="16" LineBreakMode="NoWrap" VerticalOptions="Center"></Label>
                             </Grid>
                         </Border>

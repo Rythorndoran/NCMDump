@@ -47,7 +47,8 @@ namespace NCMDump
                 var result = await FolderPicker.Default.PickAsync();
                 if (result.IsSuccessful)
                 {
-                    List<string> files = Directory.EnumerateFiles(result.Folder.Path).ToList();
+                    List<string> files = new();
+                    await Task.Run(() => { files = Directory.EnumerateFiles(result.Folder.Path).ToList(); });
                     await Navigation.PushAsync(new FileListPage(files));
                 }
             }

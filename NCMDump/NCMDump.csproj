@@ -30,24 +30,25 @@
     <AndroidKeyStore>False</AndroidKeyStore>
     <RunAOTCompilation>False</RunAOTCompilation>
     <DebugSymbols>False</DebugSymbols>
-    <PublishTrimmed>True</PublishTrimmed>
+    <PublishTrimmed>False</PublishTrimmed>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
     <EnableLLVM>False</EnableLLVM>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android34.0|AnyCPU'">
     <TrimMode>link</TrimMode>
     <AndroidKeyStore>False</AndroidKeyStore>
-    <DebugSymbols>True</DebugSymbols>
+    <DebugSymbols>False</DebugSymbols>
     <EmbedAssembliesIntoApk>False</EmbedAssembliesIntoApk>
     <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
     <RunAOTCompilation>False</RunAOTCompilation>
     <EnableLLVM>False</EnableLLVM>
+    <PublishTrimmed>False</PublishTrimmed>
   </PropertyGroup>
   <ItemGroup>
     <!-- App Icon -->
-    <MauiIcon Include="Resources\AppIcon\launcher.svg" BaseSize="200,200" Color="White" />
+    <MauiIcon Include="Resources\AppIcon\launcher.svg" BaseSize="210,210" Color="White" />
     <!-- Splash Screen -->
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" BaseSize="200,200" Color="White" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" BaseSize="210,210" Color="White" />
     <!-- Images -->
     <MauiImage Include="Resources\Images\*" />
     <!-- Custom Fonts -->
@@ -70,11 +71,10 @@
     <MauiImage Include="Resources\Raw\music.png" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Maui" Version="7.0.1" />
-    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
-    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
+    <PackageReference Include="CommunityToolkit.Maui" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.14" />
+    <PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.14" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="taglib-sharp-netstandard2.0" Version="2.1.0" />
   </ItemGroup>
 </Project>
