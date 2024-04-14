@@ -6,6 +6,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
@@ -27,8 +28,43 @@
                 </RadioButton>
             </VerticalStackLayout>
         </Border>
-        
-        <Button Grid.Row="2"
+        <Border Grid.Row="1"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 5,5,5,5"
+                Background="Transparent"
+                Padding="12,8"
+                Margin="0,1"
+                >
+            <VerticalStackLayout>
+                <Label Text="附加设置" FontSize="28" FontAttributes="Bold"></Label>
+
+                <HorizontalStackLayout>
+                    <CheckBox IsChecked="{Binding GlobalConfigs.DownloadCoverImage}" VerticalOptions="Center">
+                    </CheckBox>
+                    <Label Text="从网络获取封面(仅在内嵌封面不存在的情况下获取)" VerticalOptions="Center" VerticalTextAlignment="Center"></Label>
+                </HorizontalStackLayout>
+                
+                <HorizontalStackLayout>
+                    <CheckBox IsChecked="{Binding GlobalConfigs.DownloadLyric}" VerticalOptions="Center">
+                    </CheckBox>
+                    <Label Text="从网络获取歌词(暂不支持翻译歌词)" VerticalOptions="Center" VerticalTextAlignment="Center"></Label>
+                </HorizontalStackLayout>
+                
+                <HorizontalStackLayout>
+                    <CheckBox IsChecked="{Binding GlobalConfigs.OverwriteFile}" VerticalOptions="Center">
+                    </CheckBox>
+                    <Label Text="覆盖已有文件" VerticalOptions="Center" VerticalTextAlignment="Center"></Label>
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout>
+                    <CheckBox IsChecked="{Binding GlobalConfigs.DeleteOldFile}" VerticalOptions="Center">
+                    </CheckBox>
+                    <Label Text="自动删除旧文件" VerticalOptions="Center" VerticalTextAlignment="Center"></Label>
+                </HorizontalStackLayout>
+
+            </VerticalStackLayout>
+        </Border>
+        <Button Grid.Row="3"
                 Text="下一步"
                 Clicked="Button_Clicked">
         </Button>

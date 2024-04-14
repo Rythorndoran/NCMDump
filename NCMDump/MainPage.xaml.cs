@@ -5,11 +5,14 @@ namespace NCMDump
 {
     public partial class MainPage : ContentPage
     {
+
         public string PickerMode
         {
             get;
             set;
         } = "Single";
+
+        public GlobalVars GlobalConfigs { get => GlobalVars.Configs; }
 
         public MainPage()
         {
@@ -24,8 +27,7 @@ namespace NCMDump
                 var result = await FilePicker.PickAsync();
                 if (result != null)
                 {
-                    List<string> files = new List<string>();
-                    files.Add(result.FullPath);
+                    List<string> files = [result.FullPath];
                     await Navigation.PushAsync(new FileListPage(files));
                 }
 
@@ -45,7 +47,8 @@ namespace NCMDump
                 var result = await FolderPicker.Default.PickAsync();
                 if (result.IsSuccessful)
                 {
-                    List<string> files = Directory.EnumerateFiles(result.Folder.Path).ToList();
+                    List<string> files = new();
+                    await Task.Run(() => { files = Directory.EnumerateFiles(result.Folder.Path).ToList(); });
                     await Navigation.PushAsync(new FileListPage(files));
                 }
             }
