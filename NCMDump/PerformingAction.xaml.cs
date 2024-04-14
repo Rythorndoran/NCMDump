@@ -65,7 +65,7 @@ public partial class PerformingAction : ContentPage
                 MainThread.BeginInvokeOnMainThread(() => MusicItemListView.ScrollTo(processedItems));
 
                 //怕调用太快被服务器拉黑了
-                if(GlobalVars.Configs.DownloadCoverImage || GlobalVars.Configs.DownloadLyric)
+                if((GlobalVars.Configs.DownloadCoverImage && item.CryptoMusic.IsEnabedImages) || GlobalVars.Configs.DownloadLyric)
                 {
                     Thread.Sleep(1000);
                 }
@@ -95,14 +95,10 @@ public partial class PerformingAction : ContentPage
         {
             Files.ForEach(file =>
             {
-                var cryptoMusic = NeteaseCryptoMusic.FromFile(file);
-
-                if (cryptoMusic == null)
+                if (NeteaseCryptoMusic.CheckFile(file) == false)
                     return;
 
-                var fileinfo = new System.IO.FileInfo(file);
-                string fileinfo_string = cryptoMusic.MetaData.Format + " | " + FileSizeToString(fileinfo.Length);
-                MusicListItems.Add(new MusicDescriptor(file, cryptoMusic.MetaData.MusicName, fileinfo_string, cryptoMusic.CoverImage, cryptoMusic));
+                MusicListItems.Add(new MusicDescriptor(file));
             });
         }
         );

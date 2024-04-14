@@ -9,59 +9,66 @@
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
-        <ScrollView Grid.Row="0">
-            <CollectionView x:Name="MusicItemListView"
+        <CollectionView Grid.Row="0"
+                        x:Name="MusicItemListView"
                         ItemsSource="{Binding  MusicItems.MusicDescriptorList}"                       
                         EmptyView="No File or Folder found"
                         VerticalScrollBarVisibility="Always"
+                        Scrolled="MusicItemListView_Scrolled"
                         >
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Border StrokeThickness="1"
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border StrokeThickness="1"
                                     StrokeShape="RoundRectangle 5,5,5,5"
                                     Background="Transparent"
                                     Padding="12,8"
                                     Margin="0,1">
-                            <Grid Padding="10, 10">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="60" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"></TapGestureRecognizer>
-                                </Grid.GestureRecognizers>
-                                <Image Source="{Binding CoverImage}"
+                        <Grid Padding="10, 10">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="60" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped"></TapGestureRecognizer>
+                            </Grid.GestureRecognizers>
+                            <Image Source="{Binding CoverImage}"
                                    Grid.Column = "0"
                                    HeightRequest = "100"
                                    WidthRequest = "100"
                                    >
-                                    <Image.Clip>
-                                        <RoundRectangleGeometry Rect="0,0,100,100" CornerRadius="5"></RoundRectangleGeometry>
-                                    </Image.Clip>
-                                </Image>
-                                <VerticalStackLayout Grid.Column="1" Padding="10">
-                                    <Label  Text ="{Binding MusicName}"
-                                        FontSize="36"
-                                        FontAttributes="Bold"
-                                        VerticalOptions="Start" >
-                                    </Label>
-
-                                    <Label Text="{Binding FileInfo}"
+                                <Image.Clip>
+                                    <RoundRectangleGeometry Rect="0,0,100,100" CornerRadius="5"></RoundRectangleGeometry>
+                                </Image.Clip>
+                            </Image>
+                            <Grid Grid.Column="1" Padding="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"></RowDefinition>
+                                    <RowDefinition Height="*"></RowDefinition>
+                                    <RowDefinition Height="Auto"></RowDefinition>
+                                </Grid.RowDefinitions>
+                                <Label Grid.Row="0" 
+                                        Text ="{Binding MusicName}"
+                                        FontSize="24"
+                                        MaxLines ="2"
+                                        FontAttributes="Bold">
+                                </Label>
+                                <Label Grid.Row="2"
+                                       Text="{Binding FileInfo}"
                                        FontSize="12"
                                        VerticalOptions="End">
-                                    </Label>
-                                </VerticalStackLayout>
-                                <CheckBox Grid.Column="2" IsChecked="{Binding IsItemChecked, Mode=TwoWay}" CheckedChanged="CheckBox_CheckedChanged"></CheckBox>
+                                </Label>
                             </Grid>
-                        </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
-        </ScrollView>
+
+                            <CheckBox Grid.Column="2" IsChecked="{Binding IsItemChecked, Mode=TwoWay}" CheckedChanged="CheckBox_CheckedChanged"></CheckBox>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
         <Button x:Name="NextStepButton" IsEnabled="False" Text="下一步"  Grid.Row = "1" Clicked="Button_Clicked">
         </Button>
     </Grid>

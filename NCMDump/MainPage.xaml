@@ -56,6 +56,12 @@
                     <Label Text="覆盖已有文件" VerticalOptions="Center" VerticalTextAlignment="Center"></Label>
                 </HorizontalStackLayout>
 
+                <HorizontalStackLayout>
+                    <CheckBox IsChecked="{Binding GlobalConfigs.DeleteOldFile}" VerticalOptions="Center">
+                    </CheckBox>
+                    <Label Text="自动删除旧文件" VerticalOptions="Center" VerticalTextAlignment="Center"></Label>
+                </HorizontalStackLayout>
+
             </VerticalStackLayout>
         </Border>
         <Button Grid.Row="3"

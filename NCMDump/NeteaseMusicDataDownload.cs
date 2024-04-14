@@ -1,10 +1,7 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System.Diagnostics;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace NCMDump
 {
@@ -30,7 +27,11 @@ namespace NCMDump
         public LyricData tlyric { get; set; }
         public int code { get; set; }
     }
-
+    [JsonSourceGenerationOptions(WriteIndented = true)]
+    [JsonSerializable(typeof(NeteaseLyric))]
+    internal partial class NeteaseLyricSourceGenerationContext : JsonSerializerContext
+    {
+    }
     internal class NeteaseMusicDataDownload
     {
         public static async Task<byte[]> GetCoverImage(string url)
@@ -73,7 +74,7 @@ namespace NCMDump
                     if (response.IsSuccessStatusCode)
                     {
                         string responseBody = await response.Content.ReadAsStringAsync();
-                        return JsonConvert.DeserializeObject<NeteaseLyric>(responseBody);
+                        return JsonSerializer.Deserialize<NeteaseLyric>(responseBody, NeteaseLyricSourceGenerationContext.Default.NeteaseLyric);
                     }
                     else
                     {

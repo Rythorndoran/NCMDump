@@ -1,36 +1,77 @@
-﻿using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using System;
+﻿using Microsoft.Maui.Graphics.Text;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Xml.Linq;
 
 namespace NCMDump
 {
-    public class ArtistDataConverter : Newtonsoft.Json.JsonConverter<Artist>
+    public class ArtistDataConverter : JsonConverter<List<Artist>>
     {
-        public override Artist ReadJson(JsonReader reader, Type objectType, Artist existingValue, bool hasExistingValue, Newtonsoft.Json.JsonSerializer serializer)
+        public override List<Artist> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            if (reader.TokenType != JsonToken.StartArray)
+            if (reader.TokenType != JsonTokenType.StartArray)
             {
-                throw new JsonSerializationException("Expected StartArray token");
+                throw new JsonException("Expected StartArray token");
             }
 
-            // 读取数组元素
-            JArray array = JArray.Load(reader);
-            string name = array[0].ToString();
-            int value = array[1].Value<int>();
+            List<Artist> artists = new List<Artist>();
 
-            return new Artist { ArtistName = name, ArtistId = value };
+            while (reader.Read())
+            {
+                if (reader.TokenType == JsonTokenType.EndArray)
+                {
+                    return artists;
+                }
+
+                if (reader.TokenType != JsonTokenType.StartArray)
+                {
+                    throw new JsonException("Expected StartArray token");
+                }
+
+                string name = string.Empty;
+                int value = 0;
+
+                while (reader.Read())
+                {
+                    if (reader.TokenType == JsonTokenType.EndArray)
+                    {
+                        break;
+                    }
+
+                    if (reader.TokenType != JsonTokenType.String && reader.TokenType != JsonTokenType.Number)
+                    {
+                        throw new JsonException("Expected String or Number token");
+                    }
+
+                    if (reader.TokenType == JsonTokenType.String)
+                    {
+                        name = reader.GetString();
+                    }
+                    else if (reader.TokenType == JsonTokenType.Number)
+                    {
+                        value = reader.GetInt32();
+                    }
+                }
+
+                artists.Add(new Artist { ArtistName = name, ArtistId = value });
+            }
+
+            throw new JsonException("Unexpected end when reading JSON.");
         }
 
-        public override void WriteJson(JsonWriter writer, Artist value, Newtonsoft.Json.JsonSerializer serializer)
+        public override void Write(Utf8JsonWriter writer, List<Artist> value, JsonSerializerOptions options)
         {
-            // 序列化 MyData 对象为无键的 JSON 数组
             writer.WriteStartArray();
-            writer.WriteValue(value.ArtistName);
-            writer.WriteValue(value.ArtistId);
+
+            foreach (var artist in value)
+            {
+                writer.WriteStartArray();
+                writer.WriteStringValue(artist.ArtistName);
+                writer.WriteNumberValue(artist.ArtistId);
+                writer.WriteEndArray();
+            }
+
             writer.WriteEndArray();
         }
     }
@@ -42,52 +83,55 @@ namespace NCMDump
         public int ArtistId { get; set; }
     }
 
-
     public class NeteaseCryptoMusicMetaData
     {
-        [Newtonsoft.Json.JsonProperty(PropertyName = "musicId")]
+        [JsonPropertyName("musicId")]
         public long MusicId { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "musicName")]
+        [JsonPropertyName("musicName")]
         public string MusicName { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "artist" , ItemConverterType = typeof(ArtistDataConverter))]
+        [JsonPropertyName("artist")]
+        [JsonConverter(typeof(ArtistDataConverter))]
         public List<Artist> Artist { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "albumId")]
+        [JsonPropertyName("albumId")]
         public long AlbumId { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "album")]
+        [JsonPropertyName("album")]
         public string Album { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "albumPicDocId")]
-        public string AlbumPicDocId { get; set; }
-
-        [Newtonsoft.Json.JsonProperty(PropertyName = "albumPic")]
+        [JsonPropertyName("albumPic")]
         public string AlbumPic { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "bitrate")]
+        [JsonPropertyName("bitrate")]
         public int Bitrate { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "mp3DocId")]
+        [JsonPropertyName("mp3DocId")]
         public string Mp3DocId { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "duration")]
+        [JsonPropertyName("duration")]
         public int Duration { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "mvId")]
-        public long MvId { get; set; }
+        [JsonPropertyName("mvId")]
+        public UInt64 MvId { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "alias")]
-        public List<string> Alias { get; set; }
+        //[JsonPropertyName("alias")]
+        //public List<string> Alias { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "transNames")]
+        [JsonPropertyName("transNames")]
         public List<string> TransNames { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "format")]
+        [JsonPropertyName("format")]
         public string Format { get; set; }
 
-        [Newtonsoft.Json.JsonProperty(PropertyName = "flag")]
+        [JsonPropertyName("flag")]
         public int Flag { get; set; }
+    }
+
+    [JsonSourceGenerationOptions(WriteIndented = true)]
+    [JsonSerializable(typeof(NeteaseCryptoMusicMetaData))]
+    internal partial class NeteaseCryptoMusicMetaDataSourceGenerationContext : JsonSerializerContext
+    {
     }
 }

@@ -28,6 +28,12 @@ namespace NCMDump
             set;
         } = false;
 
+        public bool DeleteOldFile
+        {
+            get;
+            set;
+        } = false;
+
         private GlobalVars() { }
 
     }

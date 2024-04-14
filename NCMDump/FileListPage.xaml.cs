@@ -21,48 +21,26 @@ public partial class FileListPage : ContentPage
         Files = files;
     }
 
-    private string FileSizeToString(long len)
-    {
-        long fileSizeInBytes = len;
-        double fileSizeInKB = fileSizeInBytes / 1024.0; // 字节转换为千字节（KB）
-        double fileSizeInMB = fileSizeInKB / 1024.0; // 千字节转换为兆字节（MB）
-        string FileSize = $"{Math.Round(fileSizeInMB, 2)} MB";
-        return FileSize;
-    }
-
     private Task UpdateFileList()
     {
         MusicItems.MusicDescriptorList.Clear();
+
         return Task.Run(() =>
         {
+            GC.Collect();
             Files.ForEach(file =>
             {
-                Debug.WriteLine(file);
-                var cryptoMusic = NeteaseCryptoMusic.FromFile(file);
-
-                if (cryptoMusic == null)
+                if (NeteaseCryptoMusic.CheckFile(file) == false)
                     return;
-
-                var fileinfo = new System.IO.FileInfo(file);
-                string fileinfo_string = cryptoMusic.MetaData.Format +  " | " + FileSizeToString(fileinfo.Length)  ;
-                MusicItems.MusicDescriptorList.Add(new MusicDescriptor(file, cryptoMusic.MetaData.MusicName, fileinfo_string, cryptoMusic.CoverImage, cryptoMusic));
+                MusicItems.MusicDescriptorList.Add(new MusicDescriptor(file));
             });
         }
         );
     }
 
-    private async void ContentPage_Loaded(object sender, EventArgs e)
+    private void ContentPage_Loaded(object sender, EventArgs e)
     {
-        await UpdateFileList();
-        if(MusicItems.MusicDescriptorList.Count == 0)
-        {
-            await DisplayAlert("警告", "没有有效的文件！", "确定");
-        }
-        else
-        {
-            NextStepButton.IsEnabled = true;
-            SelectedFileCount = MusicItems.MusicDescriptorList.Count;
-        }
+         UpdateFileList();
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
@@ -74,7 +52,8 @@ public partial class FileListPage : ContentPage
 
     private void Button_Clicked(object sender, EventArgs e)
     {
-        Navigation.PushAsync(new PerformingAction(MusicItems.MusicDescriptorList.Where(x => x.IsItemChecked).Select(x => x.FileName).ToList()));
+        var newFileList = MusicItems.MusicDescriptorList.Where(x => x.IsItemChecked).Select(x => x.FileName).ToList();
+        Navigation.PushAsync(new PerformingAction(newFileList));
     }
 
     private void CheckBox_CheckedChanged(object sender, CheckedChangedEventArgs e)
@@ -95,5 +74,10 @@ public partial class FileListPage : ContentPage
         {
             NextStepButton.IsEnabled = true;
         }
+    }
+
+    private void MusicItemListView_Scrolled(object sender, ItemsViewScrolledEventArgs e)
+    {
+    
     }
 }
